@@ -1,53 +1,30 @@
-$(document).ready(function() {
-    $('#calendar').fullCalendar({
-        header: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'month,agendaWeek,agendaDay'
-        },
-        editable: true,
-        events: [
-            {
-                title: 'Event1',
-                start: '2023-07-03'
-            },
-            {
-                title: 'Event2',
-                start: '2023-07-05',
-                end: '2023-07-07'
-            }
-        ]
-    });
-});
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Dropdown functionality for pain assessment form and BBS test
+    // Dropdown functionality for pain assessment form
     window.toggleDropdown = function(id) {
         const element = document.getElementById(id);
         element.classList.toggle('hidden');
     }
 
-    // Handle form submission
+    // Handle form submission for pain assessment
     const painAssessmentForm = document.getElementById('pain-assessment-form');
     if (painAssessmentForm) {
         painAssessmentForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const formData = new FormData(painAssessmentForm);
-
-            let formText = '';
-
+            const formObject = {};
             formData.forEach((value, key) => {
-                formText += `${key}: ${value}\n`;
+                formObject[key] = value;
             });
 
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch('/submit-health-data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ text: formText })
+                    body: JSON.stringify(formObject)
                 });
 
                 if (!response.ok) {
@@ -55,10 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 const data = await response.json();
-                alert('Response from ChatGPT: ' + data.response);
+                alert('Data submitted successfully: ' + JSON.stringify(data));
             } catch (error) {
-                console.error('Error fetching ChatGPT response:', error);
-                alert('Failed to get response from ChatGPT.');
+                console.error('Error submitting data:', error);
+                alert('Failed to submit data');
             }
         });
     }
@@ -81,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return data.response.trim();
     }
 
-    // Calculate total score for Berg Balance S
+    // Calculate total score for Berg Balance Scale
     const radioButtons = document.querySelectorAll('#bbs-test-dropdown input[type="radio"]');
     if (radioButtons.length > 0) {
         radioButtons.forEach(radio => {
@@ -165,39 +142,39 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.readAsDataURL(file);
         }
     });
+
     // Handle search condition
     const searchButton = document.getElementById('search-button');
-    searchButton.addEventListener('click', async () => {
-        const searchInput = document.getElementById('search-input').value.trim();
-        if (searchInput === "") return;
+    if (searchButton) {
+        searchButton.addEventListener('click', async () => {
+            const searchInput = document.getElementById('search-input').value.trim();
+            if (searchInput === "") return;
 
-        try {
-            const response = await fetch(`/search?condition=${encodeURIComponent(searchInput)}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const searchResults = document.getElementById('search-results');
-                searchResults.innerHTML = `<h3 class="text-xl font-bold mb-4">Search Results:</h3>`;
-                data.results.forEach(result => {
-                    const p = document.createElement('p');
-                    p.textContent = result;
-                    searchResults.appendChild(p);
+            try {
+                const response = await fetch(`/search?condition=${encodeURIComponent(searchInput)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
-            } else {
-                throw new Error('Network response was not ok.');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const searchResults = document.getElementById('search-results');
+                    searchResults.innerHTML = `<h3 class="text-xl font-bold mb-4">Search Results:</h3>`;
+                    data.results.forEach(result => {
+                        const p = document.createElement('p');
+                        p.textContent = result;
+                        searchResults.appendChild(p);
+                    });
+                } else {
+                    throw new Error('Network response was not ok.');
+                }
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+                const searchResults = document.getElementById('search-results');
+                searchResults.innerHTML = `<p class="text-red-500">Failed to get search results.</p>`;
             }
-        } catch (error) {
-            console.error('Error fetching search results:', error);
-            const searchResults = document.getElementById('search-results');
-            searchResults.innerHTML = `<p class="text-red-500">Failed to get search results.</p>`;
-        }
-    });
+        });
+    }
 });
-
-
-

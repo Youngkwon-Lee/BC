@@ -1,0 +1,26 @@
+{
+  "name": "이영권",
+  "age": "32",
+  "gender": "남성",
+  "contact": "01067046556",
+  "pain-location": "목",
+  "pain-location-other": "",
+  "pain-intensity": "3",
+  "pain-character": "날카로운 통증",
+  "pain-character-other": "",
+  "pain-duration": "몇 초",
+  "pain-frequency": "한 번 발생",
+  "pain-cause": "부상",
+  "pain-cause-other": "",
+  "pain-relief": "마사지",
+  "pain-relief-other": "",
+  "pain-aggravation": "신체 활동",
+  "pain-aggravation-other": "",
+  "pain-impact": "신체 활동의 제한",
+  "pain-impact-other": "",
+  "additional-info": "없음",
+  "steps": [
+    { "date": "2023-07-20", "count": 12345 },
+    { "date": "2023-07-21", "count": 6789 }
+  ]
+}
