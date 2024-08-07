@@ -1,3 +1,4 @@
+// contracts/MyNFT.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -17,6 +18,7 @@ contract MyNFT is ERC721, ERC721Burnable {
     mapping(address => RewardInfo) public rewards;
     mapping(uint256 => string) public ticketTypes;
     mapping(address => uint256) public nftBalances;
+    mapping(address => uint256) public balanceScaleScores;
 
     address public fitnessCenterAddress;
 
@@ -70,6 +72,11 @@ contract MyNFT is ERC721, ERC721Burnable {
         require(keccak256(abi.encodePacked(ticketTypes[tokenId])) == keccak256(abi.encodePacked("Fitness Center 1-day Pass")), "Not a valid fitness center ticket");
         safeTransferFrom(msg.sender, fitnessCenterAddress, tokenId);
         emit NFTTransferredToFitnessCenter(msg.sender, tokenId);
+    }
+
+    function submitBalanceScaleScore(uint256 score) public {
+        require(score <= 56, "Score must be between 0 and 56");
+        balanceScaleScores[msg.sender] = score;
     }
 
     event TicketIssued(address indexed user, string ticketType);

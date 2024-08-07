@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     // Dropdown functionality for pain assessment form
     window.toggleDropdown = function(id) {
@@ -13,49 +12,35 @@ document.addEventListener("DOMContentLoaded", () => {
             event.preventDefault();
 
             const formData = new FormData(painAssessmentForm);
-            const formObject = {};
+            let totalPainScore = 0;
+
             formData.forEach((value, key) => {
-                formObject[key] = value;
+                if (key === 'pain-intensity') {
+                    totalPainScore += parseInt(value);
+                }
             });
 
-            try {
-                const response = await fetch('/submit-health-data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formObject)
-                });
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok.');
-                }
+                const accounts = await web3.eth.getAccounts();
+                const networkId = await web3.eth.net.getId();
+                const HealthData = new web3.eth.Contract(
+                    HealthData_ABI,
+                    HealthData_Address
+                );
 
-                const data = await response.json();
-                alert('Data submitted successfully: ' + JSON.stringify(data));
-            } catch (error) {
-                console.error('Error submitting data:', error);
-                alert('Failed to submit data');
+                HealthData.methods.submitPainScore(totalPainScore).send({ from: accounts[0] })
+                    .on('receipt', function (receipt) {
+                        alert('Pain score submitted successfully!');
+                    })
+                    .on('error', function (error) {
+                        console.error(error);
+                        alert('Failed to submit pain score.');
+                    });
             }
         });
-    }
-
-    // Function to get response from ChatGPT API
-    async function getChatGPTResponse(text) {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ text })
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok.');
-        }
-
-        const data = await response.json();
-        return data.response.trim();
     }
 
     // Calculate total score for Berg Balance Scale
@@ -74,11 +59,36 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         document.getElementById('total-score').innerText = totalScore;
+        return totalScore;
     }
 
     const submitScoreButton = document.getElementById('submit-score');
     if (submitScoreButton) {
-        submitScoreButton.addEventListener('click', calculateTotalScore);
+        submitScoreButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const totalScore = calculateTotalScore();
+
+            if (typeof window.ethereum !== 'undefined') {
+                const web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                const accounts = await web3.eth.getAccounts();
+                const networkId = await web3.eth.net.getId();
+                const HealthData = new web3.eth.Contract(
+                    HealthData_ABI,
+                    HealthData_Address
+                );
+
+                HealthData.methods.submitBalanceScore(totalScore).send({ from: accounts[0] })
+                    .on('receipt', function (receipt) {
+                        alert('Balance score submitted successfully!');
+                    })
+                    .on('error', function (error) {
+                        console.error(error);
+                        alert('Failed to submit balance score.');
+                    });
+            }
+        });
     }
 
     // Chatbot submit button functionality
@@ -178,3 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Replace with your contract's ABI and Address
+const HealthData_ABI = [
+    // Your contract's ABI
+];
+const HealthData_Address = '0xYourContractAddress';
